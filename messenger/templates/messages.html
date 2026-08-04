@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Сообщения — Мессенджер от Фокса{% endblock %}
+{% block content %}
+
+<div class="section-title">✉ Твои диалоги</div>
+{% if not partners %}
+  <p>У тебя пока нет диалогов. Начни переписку — выбери человека ниже!</p>
+{% endif %}
+<table class="list">
+  {% for p in partners %}
+  <tr>
+    <td>{{ p.avatar_emoji }} <b>{{ p.username }}</b>
+      {% if are_friends(current_user.id, p.id) %}<span class="small-note">🤝 друзья</span>
+      {% elif is_following(current_user.id, p.id) %}<span class="small-note">подписка</span>{% endif %}
+    </td>
+    <td align="right"><a href="{{ url_for('chat', user_id=p.id) }}" class="btn btn-blue btn-small">Открыть чат →</a></td>
+  </tr>
+  {% endfor %}
+</table>
+
+<div class="section-title">👥 Все пользователи</div>
+<table class="list">
+  {% for u in all_users %}
+  <tr>
+    <td>{{ u.avatar_emoji }} {{ u.username }}{% if u.is_admin %} <span class="small-note">[админ]</span>{% endif %}
+      {% if are_friends(current_user.id, u.id) %}<br><span class="small-note">🤝 вы друзья</span>
+      {% elif is_following(current_user.id, u.id) %}<br><span class="small-note">вы подписаны</span>{% endif %}
+    </td>
+    <td align="right">
+      {% if is_following(current_user.id, u.id) %}
+        <form method="POST" action="{{ url_for('unfollow_user', user_id=u.id) }}" style="display:inline;">
+          <button type="submit" class="btn btn-gray btn-small">Отписаться</button>
+        </form>
+      {% else %}
+        <form method="POST" action="{{ url_for('follow_user', user_id=u.id) }}" style="display:inline;">
+          <button type="submit" class="btn btn-blue btn-small">+ Подписаться</button>
+        </form>
+      {% endif %}
+      <a href="{{ url_for('chat', user_id=u.id) }}" class="btn btn-small">Написать</a>
+    </td>
+  </tr>
+  {% else %}
+  <tr><td>Пока нет других пользователей.</td></tr>
+  {% endfor %}
+</table>
+
+<p class="small-note" style="margin-top:14px;">
+  🤝 Вы становитесь друзьями автоматически, когда вы и другой человек подписываетесь друг на друга.
+  Вкладки «От друзей» и «Подписки» в ленте покажут посты именно этих людей.
+</p>
+{% endblock %}

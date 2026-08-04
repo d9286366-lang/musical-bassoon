@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Лента — Мессенджер от Фокса{% endblock %}
+{% block content %}
+
+<form method="POST" class="old-box composer">
+  <div class="composer-top">
+    <div class="composer-avatar">{{ current_user.avatar_emoji }}</div>
+    <div style="flex:1;">
+      <textarea name="text" rows="3" placeholder="Что у тебя нового?" required></textarea>
+      <div class="emoji-picker" id="emojiPicker">
+        {% for e in EMOJIS %}<span onclick="addEmoji('{{ e }}')">{{ e }}</span>{% endfor %}
+      </div>
+      <p style="margin:12px 0 0 0;"><input type="submit" value="Опубликовать →"></p>
+    </div>
+  </div>
+</form>
+
+<div class="section-title">📰 Лента новостей</div>
+
+{% if not posts %}
+  {% if tab == 'friends' %}
+    <p>Здесь будут посты друзей. Друзьями вы становитесь, когда подписываетесь друг на друга взаимно — подпишитесь на кого-нибудь во вкладке «Все пользователи» в разделе «Сообщения».</p>
+  {% elif tab == 'subs' %}
+    <p>Вы пока ни на кого не подписаны. Найдите людей в разделе «Сообщения» → «Все пользователи» и подпишитесь на них.</p>
+  {% else %}
+    <p>Пока тут пусто... Будь первым, кто опубликует пост!</p>
+  {% endif %}
+{% endif %}
+
+{% for post in posts %}
+  {% set likes, dislikes = reaction_counts(post) %}
+  {% set my_reaction = user_reaction(post, current_user) %}
+  <div class="post">
+    <div class="post-header">
+      {{ post.author.avatar_emoji }} <b>{{ post.author.username }}</b>
+      &nbsp;·&nbsp; {{ post.timestamp.strftime('%d.%m.%Y %H:%M') }}
+      {% if post.author.id != current_user.id %}
+        {% if are_friends(current_user.id, post.author.id) %}
+          <span class="small-note">🤝 друг</span>
+        {% elif is_following(current_user.id, post.author.id) %}
+          <form method="POST" action="{{ url_for('unfollow_user', user_id=post.author.id) }}" style="display:inline;">
+            <button type="submit" class="btn btn-gray btn-small">Отписаться</button>
+          </form>
+        {% else %}
+          <form method="POST" action="{{ url_for('follow_user', user_id=post.author.id) }}" style="display:inline;">
+            <button type="submit" class="btn btn-blue btn-small">+ Подписаться</button>
+          </form>
+        {% endif %}
+      {% endif %}
+    </div>
+    <div class="post-body">{{ post.text }}</div>
+    <div class="post-footer">
+      <a href="{{ url_for('react', post_id=post.id, value=1) }}" class="reaction-btn {% if my_reaction==1 %}active{% endif %}" title="Лайк">😺</a>
+      <span class="reaction-count">{{ likes }}</span>
+
+      <a href="{{ url_for('react', post_id=post.id, value=-1) }}" class="reaction-btn {% if my_reaction==-1 %}active{% endif %}" title="Дизлайк">😾</a>
+      <span class="reaction-count">{{ dislikes }}</span>
+
+      <a href="{{ url_for('post_detail', post_id=post.id) }}" class="btn btn-blue btn-small">💬 {{ post.comments|length }}</a>
+
+      <form method="POST" action="{{ url_for('report_post', post_id=post.id) }}" style="display:inline;" onsubmit="return promptReport(this)">
+        <input type="hidden" name="reason" value="">
+        <button type="submit" class="btn btn-gray btn-small">🚩 Жалоба</button>
+      </form>
+
+      {% if current_user.is_admin or current_user.id == post.user_id %}
+      <form method="POST" action="{{ url_for('delete_post', post_id=post.id) }}" style="display:inline; margin-left:auto;" onsubmit="return confirm('Удалить пост?');">
+        <button type="submit" class="btn btn-red btn-small">Удалить</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+{% endfor %}
+
+<script>
+function addEmoji(e) {
+  var ta = document.querySelector('textarea[name=text]');
+  ta.value += e;
+  ta.focus();
+}
+function promptReport(form) {
+  var reason = prompt("Почему вы жалуетесь на этот пост? (например: 18+, жестокость, издевательства над животными)");
+  if (reason === null) return false;
+  form.reason.value = reason || "Не указана";
+  return true;
+}
+</script>
+{% endblock %}

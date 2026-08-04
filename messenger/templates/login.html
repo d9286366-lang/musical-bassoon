@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Вход — Мессенджер от Фокса{% endblock %}
+{% block content %}
+<div class="old-box">
+  <h2>😺 Вход в аккаунт</h2>
+  <form method="POST">
+    <label>Логин:</label>
+    <input type="text" name="username" required autofocus>
+
+    <label>Пароль:</label>
+    <input type="password" name="password" required>
+
+    <p style="margin-top:14px;">
+      <input type="submit" value="Войти →">
+    </p>
+  </form>
+  <p class="small-note">Нет аккаунта? <a href="{{ url_for('register') }}">Зарегистрироваться</a></p>
+</div>
+{% endblock %}

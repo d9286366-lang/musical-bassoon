@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Чат с {{ partner.username }}{% endblock %}
+{% block content %}
+
+<p><a href="{{ url_for('messages_list') }}">← Все сообщения</a></p>
+<div class="section-title">✉ Переписка с {{ partner.avatar_emoji }} {{ partner.username }}</div>
+
+<div class="chat-window" id="chatWindow">
+  {% for m in msgs %}
+    <div class="chat-msg {% if m.sender_id == current_user.id %}mine{% else %}theirs{% endif %}">
+      {{ m.text }}
+      <span class="meta">{{ m.sender.username }} · {{ m.timestamp.strftime('%d.%m.%Y %H:%M') }}</span>
+    </div>
+  {% else %}
+    <p>Сообщений пока нет. Напиши первым!</p>
+  {% endfor %}
+</div>
+
+<form method="POST" class="old-box" style="max-width:100%;">
+  <textarea name="text" rows="2" placeholder="Твоё сообщение..." required></textarea>
+  <div class="emoji-picker">
+    {% for e in EMOJIS %}<span onclick="addEmoji('{{ e }}')">{{ e }}</span>{% endfor %}
+  </div>
+  <p><input type="submit" value="Отправить →"></p>
+</form>
+
+<script>
+function addEmoji(e) {
+  var ta = document.querySelector('textarea[name=text]');
+  ta.value += e;
+  ta.focus();
+}
+var cw = document.getElementById('chatWindow');
+cw.scrollTop = cw.scrollHeight;
+</script>
+{% endblock %}

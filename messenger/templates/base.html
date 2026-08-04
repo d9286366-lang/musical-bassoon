@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Мессенджер от Фокса{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div id="wrapper">
+  <div id="header">
+    <div class="topbar-inner">
+      <div class="logo">🦊 Мессенджер от Фокса</div>
+      <div class="searchbox">
+        <input type="text" placeholder="🔍 Поиск по сайту...">
+      </div>
+      <div class="nav-links">
+        {% if current_user.is_authenticated %}
+          <a href="{{ url_for('feed') }}">Лента</a>
+          <a href="{{ url_for('messages_list') }}">Сообщения ✉</a>
+          {% if current_user.is_admin %}<a href="{{ url_for('admin_panel') }}">⚙ Админка</a>{% endif %}
+          <a href="{{ url_for('logout') }}">Выход</a>
+          <span class="userchip">{{ current_user.avatar_emoji }} {{ current_user.username }}</span>
+        {% else %}
+          <a href="{{ url_for('login') }}">Вход</a>
+          <a href="{{ url_for('register') }}">Регистрация</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% if current_user.is_authenticated and request.endpoint == 'feed' %}
+  <div class="tabsbar">
+    <a href="{{ url_for('feed') }}" class="{{ 'active' if not request.args.get('tab') or request.args.get('tab') == 'all' else '' }}">Лента</a>
+    <a href="{{ url_for('feed', tab='friends') }}" class="{{ 'active' if request.args.get('tab') == 'friends' else '' }}">🤝 От друзей</a>
+    <a href="{{ url_for('feed', tab='subs') }}" class="{{ 'active' if request.args.get('tab') == 'subs' else '' }}">⭐ Подписки</a>
+  </div>
+  {% endif %}
+
+  <div id="content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, msg in messages %}
+          <div class="flash flash-{{ category }}">{{ msg }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </div>
+
+  <div id="footer">
+    © 2010 Мессенджер от Фокса &nbsp;|&nbsp; Сделано на Python + Flask &nbsp;|&nbsp; Лучше смотреть в разрешении 1024x768 :)
+  </div>
+</div>
+</body>
+</html>

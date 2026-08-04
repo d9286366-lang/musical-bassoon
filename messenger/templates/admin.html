@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Админ-панель — Мессенджер от Фокса{% endblock %}
+{% block content %}
+
+<div class="section-title">⚙ Панель администратора</div>
+
+<h3>🚩 Активные жалобы ({{ reports|length }})</h3>
+{% if not reports %}
+  <p>Жалоб нет. Всё спокойно ☺</p>
+{% endif %}
+{% for r in reports %}
+  <div class="post">
+    <div class="post-header">
+      Жалоба от <b>{{ r.reporter.username }}</b> · {{ r.timestamp.strftime('%d.%m.%Y %H:%M') }}
+    </div>
+    <div class="post-body">
+      <div class="report-box"><b>Причина:</b> {{ r.reason }}</div>
+      <br>
+      <b>Пост от {{ r.post.author.username }}:</b><br>
+      {{ r.post.text }}
+    </div>
+    <div class="post-footer">
+      <a href="{{ url_for('post_detail', post_id=r.post.id) }}" class="btn btn-blue btn-small">Открыть пост</a>
+
+      <form method="POST" action="{{ url_for('delete_post', post_id=r.post.id) }}" style="display:inline;" onsubmit="return confirm('Удалить этот пост?');">
+        <button type="submit" class="btn btn-red btn-small">✖ Удалить пост</button>
+      </form>
+
+      <form method="POST" action="{{ url_for('dismiss_report', report_id=r.id) }}" style="display:inline;">
+        <button type="submit" class="btn btn-gray btn-small">Отклонить жалобу</button>
+      </form>
+    </div>
+  </div>
+{% endfor %}
+
+<h3>👥 Пользователи</h3>
+<table class="list">
+  <tr><th>Пользователь</th><th>Роль</th><th>Действие</th></tr>
+  {% for u in users %}
+  <tr>
+    <td>{{ u.avatar_emoji }} {{ u.username }}</td>
+    <td>{% if u.is_admin %}<b>Администратор</b>{% else %}Пользователь{% endif %}</td>
+    <td>
+      {% if u.id != current_user.id %}
+      <form method="POST" action="{{ url_for('toggle_admin', user_id=u.id) }}">
+        <button type="submit" class="btn btn-small">
+          {% if u.is_admin %}Забрать права{% else %}Сделать админом{% endif %}
+        </button>
+      </form>
+      {% else %}
+      <span class="small-note">(это ты)</span>
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Регистрация — Мессенджер от Фокса{% endblock %}
+{% block content %}
+<div class="old-box">
+  <h2>☺ Регистрация нового аккаунта</h2>
+  <form method="POST">
+    <label>Придумай логин:</label>
+    <input type="text" name="username" maxlength="64" required>
+
+    <label>Придумай пароль:</label>
+    <input type="password" name="password" required>
+
+    <label>Повтори пароль:</label>
+    <input type="password" name="password2" required>
+
+    <p style="margin-top:14px;">
+      <input type="submit" value="Зарегистрироваться →">
+    </p>
+  </form>
+  <p class="small-note">Уже есть аккаунт? <a href="{{ url_for('login') }}">Войти</a></p>
+</div>
+{% endblock %}
